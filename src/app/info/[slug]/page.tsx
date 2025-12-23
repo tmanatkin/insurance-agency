@@ -20,7 +20,7 @@ const infoCardContent: Record<string, InfoCardContent> = {
 export default async function InfoSlugPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const content = infoCardContent[slug] || {
-    title: "Unknown Info Page",
+    title: "404 - Page Not Found",
     message: "This page does not exist.",
     links: [{ label: "Home", href: "/" }],
   };
