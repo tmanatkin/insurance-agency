@@ -7,7 +7,7 @@ function getBaseUrl(): string {
   // use VERCEL_URL for production and preview deployments
   // fallback to BASE_URL for local development
   const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : process.env.BASE_URL;
-
+  console.log("Base URL:", baseUrl);
   if (!baseUrl) {
     throw new Error("BASE_URL is not defined");
   }
