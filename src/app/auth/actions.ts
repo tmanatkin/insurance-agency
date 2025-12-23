@@ -35,13 +35,13 @@ export async function signup(data: {
   email: string;
   password: string;
 }): Promise<{ error?: string; success?: boolean }> {
-  console.log("BASE_URL:", process.env.BASE_URL);
+  console.log("NEXT_PUBLIC_SITE_URL:", process.env.NEXT_PUBLIC_SITE_URL);
   const supabase = await createServersideClient();
   const { error } = await supabase.auth.signUp({
     email: data.email,
     password: data.password,
     options: {
-      emailRedirectTo: `${process.env.BASE_URL}/auth/login`,
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/login`,
     },
   });
 
@@ -55,10 +55,10 @@ export async function signup(data: {
 
 // send password recovery email
 export async function sendPasswordRecovery(email: string): Promise<{ error?: string; success?: boolean }> {
-  console.log("BASE_URL:", process.env.BASE_URL);
+  console.log("NEXT_PUBLIC_SITE_URL:", process.env.NEXT_PUBLIC_SITE_URL);
   const supabase = await createServersideClient();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.BASE_URL}/auth/update-password`,
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/update-password`,
   });
 
   if (error) {
