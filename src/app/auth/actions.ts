@@ -3,6 +3,18 @@
 import { revalidatePath } from "next/cache";
 import { createServersideClient, createServersideAdminClient } from "@/utils/supabase/server";
 
+function getBaseUrl(): string {
+  // use VERCEL_URL for production and preview deployments
+  // fallback to BASE_URL for local development
+  const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : process.env.BASE_URL;
+
+  if (!baseUrl) {
+    throw new Error("BASE_URL is not defined");
+  }
+
+  return baseUrl;
+}
+
 // login
 export async function login(data: { email: string; password: string }): Promise<{ error?: string; success?: boolean }> {
   const supabase = await createServersideClient();
@@ -40,7 +52,7 @@ export async function signup(data: {
     email: data.email,
     password: data.password,
     options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_URL}/auth/login`,
+      emailRedirectTo: `${getBaseUrl()}/auth/login`,
     },
   });
 
@@ -56,7 +68,7 @@ export async function signup(data: {
 export async function sendPasswordRecovery(email: string): Promise<{ error?: string; success?: boolean }> {
   const supabase = await createServersideClient();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_URL}/auth/update-password`,
+    redirectTo: `${getBaseUrl()}/auth/update-password`,
   });
 
   if (error) {
