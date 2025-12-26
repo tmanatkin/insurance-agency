@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { riskAssessmentQuestions } from "@/data/riskAssessmentQuestions";
+import { riskAssessmentQuestions } from "@/app/risk-assessment/riskAssessmentQuestions";
 import { Answer } from "@/types/RiskAssessment";
 
 export default function RiskAssessmentPage() {

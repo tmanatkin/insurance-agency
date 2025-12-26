@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function ResultsContent() {
+export default function RiskResultCard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const score = parseInt(searchParams.get("score") || "0");

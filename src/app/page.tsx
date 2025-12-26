@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { logout } from "./auth/actions";
+import { logout } from "../services/auth";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
