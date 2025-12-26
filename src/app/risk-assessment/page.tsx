@@ -32,8 +32,6 @@ export default function RiskAssessmentPage() {
       if (isLastQuestion) {
         // Survey complete - calculate total points
         const totalPoints = updatedAnswers.reduce((sum, answer) => sum + answer.points, 0);
-        console.log("Survey completed. Answers:", updatedAnswers);
-        console.log("Total points:", totalPoints);
         router.push(`/risk-assessment/results?score=${totalPoints}`);
       } else {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
