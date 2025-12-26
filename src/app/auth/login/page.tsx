@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import AuthCard from "../components/AuthCard/AuthCard";
+import AuthCard from "../AuthCard";
 
 export default function LoginPage() {
   return (

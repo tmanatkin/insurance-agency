@@ -1,5 +1,5 @@
 import { InfoCardContent } from "@/types/InfoCardContent";
-import InfoCard from "../../../components/InfoCard/InfoCard";
+import InfoCard from "../InfoCard";
 
 const infoCardContent: Record<string, InfoCardContent> = {
   "verify-email": {

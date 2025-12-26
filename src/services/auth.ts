@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createServersideClient, createServersideAdminClient } from "@/utils/supabase/server";
+import { createServersideClient, createServersideAdminClient } from "@/lib/supabase/server";
 
 // login
 export async function login(data: { email: string; password: string }): Promise<{ error?: string; success?: boolean }> {

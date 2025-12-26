@@ -1,11 +1,11 @@
 "use client";
 
-import { isEmailRegistered, login, signup, sendPasswordRecovery, updatePassword } from "../../actions";
+import { isEmailRegistered, login, signup, sendPasswordRecovery, updatePassword } from "../../services/auth";
 import { Status } from "@/types/Status";
 import { useState, useEffect } from "react";
-import useDebounce from "../../../../hooks/useDebounce";
+import useDebounce from "../../hooks/useDebounce";
 import Link from "next/link";
-import { createClientsideClient } from "@/utils/supabase/client";
+import { createClientsideClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
