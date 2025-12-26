@@ -35,7 +35,6 @@ export async function signup(data: {
   email: string;
   password: string;
 }): Promise<{ error?: string; success?: boolean }> {
-  console.log("NEXT_PUBLIC_SITE_URL:", process.env.NEXT_PUBLIC_SITE_URL);
   const supabase = await createServersideClient();
   const { error } = await supabase.auth.signUp({
     email: data.email,
@@ -55,7 +54,6 @@ export async function signup(data: {
 
 // send password recovery email
 export async function sendPasswordRecovery(email: string): Promise<{ error?: string; success?: boolean }> {
-  console.log("NEXT_PUBLIC_SITE_URL:", process.env.NEXT_PUBLIC_SITE_URL);
   const supabase = await createServersideClient();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/update-password`,
