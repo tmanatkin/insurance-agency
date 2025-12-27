@@ -2,7 +2,7 @@
 
 import { isEmailRegistered, login, signup, sendPasswordRecovery, updatePassword } from "../../services/auth";
 import { Status } from "@/types/Status";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import useDebounce from "../../hooks/useDebounce";
 import Link from "next/link";
 import { createClientsideClient } from "@/lib/supabase/client";
@@ -22,6 +22,7 @@ export default function AuthCard({ authType }: AuthCardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const paramEmail = searchParams.get("email") ?? "";
+  const [isPending, startTransition] = useTransition();
 
   const authTitle =
     authType === "login"
@@ -65,7 +66,6 @@ export default function AuthCard({ authType }: AuthCardProps) {
 
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const ValidationIcon = ({ status }: { status: Status }) => {
     if (status === "success") return <CircleCheckBig className="h-5 w-5 text-green-600" />;
@@ -165,76 +165,67 @@ export default function AuthCard({ authType }: AuthCardProps) {
   }, [debouncedPassword, debouncedConfirmPassword, confirmPasswordTouched]);
 
   // handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-
-    // email
-    // login, signup, and account-recovery
-    if (authType === "login" || authType === "signup" || authType === "account-recovery") {
-      if (!email) {
-        toast.error("Email is required");
-        setIsSubmitting(false);
-        return;
-      } else if (!validateEmail()) {
-        toast.error("Enter a valid email");
-        setIsSubmitting(false);
-        return;
+    startTransition(async () => {
+      // email
+      // login, signup, and account-recovery
+      if (authType === "login" || authType === "signup" || authType === "account-recovery") {
+        if (!email) {
+          toast.error("Email is required");
+          return;
+        } else if (!validateEmail()) {
+          toast.error("Enter a valid email");
+          return;
+        }
       }
-    }
 
-    // check if email is already registered
-    // signup
-    if (authType === "signup") {
-      const userExists = await isEmailRegistered(email);
-      if (userExists) {
-        toast.error("An account with this email already exists");
-        setIsSubmitting(false);
-        return;
+      // check if email is already registered
+      // signup
+      if (authType === "signup") {
+        const userExists = await isEmailRegistered(email);
+        if (userExists) {
+          toast.error("An account with this email already exists");
+          return;
+        }
       }
-    }
 
-    // check if email is not registered
-    // account-recovery
-    if (authType === "account-recovery") {
-      const userExists = await isEmailRegistered(email);
-      if (!userExists) {
-        toast.error("No account with this email exists");
-        setIsSubmitting(false);
-        return;
+      // check if email is not registered
+      // account-recovery
+      if (authType === "account-recovery") {
+        const userExists = await isEmailRegistered(email);
+        if (!userExists) {
+          toast.error("No account with this email exists");
+          return;
+        }
       }
-    }
 
-    // password
-    // login, signup, and update-password
-    if (authType === "signup" || authType === "login" || authType === "update-password") {
-      if (!password) {
-        toast.error("Password is required");
-        setIsSubmitting(false);
-        return;
-      } else if ((authType === "signup" || authType === "update-password") && !validatePassword()) {
-        toast.error("Enter a valid password");
-        setIsSubmitting(false);
-        return;
+      // password
+      // login, signup, and update-password
+      if (authType === "signup" || authType === "login" || authType === "update-password") {
+        if (!password) {
+          toast.error("Password is required");
+          return;
+        } else if ((authType === "signup" || authType === "update-password") && !validatePassword()) {
+          toast.error("Enter a valid password");
+          return;
+        }
       }
-    }
 
-    // confirm password
-    // signup and update-password
-    if (authType === "signup" || authType === "update-password") {
-      if (!confirmPassword) {
-        toast.error("Confirm password is required");
-        setIsSubmitting(false);
-        return;
-      } else if (!validateConfirmPassword()) {
-        toast.error("Passwords must match");
-        setIsSubmitting(false);
-        return;
+      // confirm password
+      // signup and update-password
+      if (authType === "signup" || authType === "update-password") {
+        if (!confirmPassword) {
+          toast.error("Confirm password is required");
+          return;
+        } else if (!validateConfirmPassword()) {
+          toast.error("Passwords must match");
+          return;
+        }
       }
-    }
 
-    await authenticateSubmission();
-    setIsSubmitting(false);
+      await authenticateSubmission();
+    });
   };
 
   // authenticate with supabase
@@ -264,7 +255,7 @@ export default function AuthCard({ authType }: AuthCardProps) {
     }
     // redirect user to home page for login and update-password
     else if (authType === "login" || authType === "update-password") {
-      window.location.href = "/"; // full page reload
+      router.push("/");
     }
     // redirect to email validate page for signup
     else if (authType === "signup") {
@@ -387,8 +378,8 @@ export default function AuthCard({ authType }: AuthCardProps) {
             )}
 
             {/* Submit Button */}
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : authButtonLabel}
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : authButtonLabel}
             </Button>
 
             {/* Auth Navigation Links */}
