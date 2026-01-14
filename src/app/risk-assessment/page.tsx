@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { riskAssessmentQuestions } from "@/app/risk-assessment/riskAssessmentQuestions";
 import { Answer } from "@/types/RiskAssessment";
 
@@ -91,14 +91,11 @@ export default function RiskAssessmentPage() {
         </button>
         <CardHeader>
           <CardTitle>Risk Assessment</CardTitle>
-          <CardDescription>
-            Question {currentQuestionIndex + 1} of {riskAssessmentQuestions.length}
-          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-4">
             <h3 className="text-lg font-medium">{currentQuestion.question}</h3>
-            <div className="space-y-2">
+            <div className="space-y-2 min-h-[256px]">
               {currentQuestion.options.map((option, index) => (
                 <label
                   key={index}
