@@ -1,14 +1,18 @@
 export interface Question {
-  id: number;
+  id: string;
   question: string;
   options: Array<{
     text: string;
     points: number;
   }>;
+  showIf?: {
+    questionId: string;
+    answer: string[];
+  };
 }
 
 export interface Answer {
-  questionId: number;
+  questionId: string;
   answer: string;
   points: number;
 }
