@@ -28,22 +28,22 @@ export default function AuthCard({ authType }: AuthCardProps) {
     authType === "login"
       ? "Welcome Back"
       : authType === "signup"
-      ? "Get Started"
-      : authType === "account-recovery"
-      ? "Forgot Password?"
-      : authType === "update-password"
-      ? "Secure Your Account"
-      : null;
+        ? "Get Started"
+        : authType === "account-recovery"
+          ? "Forgot Password?"
+          : authType === "update-password"
+            ? "Secure Your Account"
+            : null;
   const authButtonLabel =
     authType === "login"
       ? "Log In"
       : authType === "signup"
-      ? "Sign Up"
-      : authType === "account-recovery"
-      ? "Recover Account"
-      : authType === "update-password"
-      ? "Update Password"
-      : null;
+        ? "Sign Up"
+        : authType === "account-recovery"
+          ? "Recover Account"
+          : authType === "update-password"
+            ? "Update Password"
+            : null;
 
   const [email, setEmail] = useState(authType === "account-recovery" ? paramEmail : "");
   const [password, setPassword] = useState("");
