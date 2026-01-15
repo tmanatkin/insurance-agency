@@ -3,7 +3,7 @@ export interface Question {
   question: string;
   options: Array<{
     text: string;
-    points: number;
+    points?: number;
   }>;
   showIf?: {
     questionId: string;
@@ -14,5 +14,5 @@ export interface Question {
 export interface Answer {
   questionId: string;
   answer: string;
-  points: number;
+  points?: number;
 }
