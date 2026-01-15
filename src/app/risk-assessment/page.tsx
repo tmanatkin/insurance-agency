@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { riskAssessmentQuestions } from "@/app/risk-assessment/riskAssessmentQuestions";
-import { Answer } from "@/types/RiskAssessment";
+import { Answer, Question } from "@/types/RiskAssessment";
 
 export default function RiskAssessmentPage() {
   const router = useRouter();
@@ -13,9 +13,33 @@ export default function RiskAssessmentPage() {
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
 
-  const currentQuestion = riskAssessmentQuestions[currentQuestionIndex];
+  // Filter questions based on showIf conditions
+  const visibleQuestions = useMemo(() => {
+    const getIsVisible = (question: Question): boolean => {
+      // If no showIf condition, always show
+      if (!question.showIf) return true;
+
+      // Find the dependent question and check if it's visible
+      const dependentQuestion = riskAssessmentQuestions.find((q) => q.id === question.showIf!.questionId);
+
+      // The dependent question must be visible
+      if (!getIsVisible(dependentQuestion!)) return false;
+
+      // Find the answer to the dependent question
+      const dependentAnswer = answers.find((a) => a.questionId === question.showIf!.questionId);
+
+      // Only show if dependent question has been answered with matching value
+      if (!dependentAnswer) return false;
+
+      return question.showIf.answer.includes(dependentAnswer.answer);
+    };
+
+    return riskAssessmentQuestions.filter(getIsVisible);
+  }, [answers]);
+
+  const currentQuestion = visibleQuestions[currentQuestionIndex];
   const isFirstQuestion = currentQuestionIndex === 0;
-  const isLastQuestion = currentQuestionIndex === riskAssessmentQuestions.length - 1;
+  const isLastQuestion = visibleQuestions.length > 1 && currentQuestionIndex === visibleQuestions.length - 1;
 
   const handleNext = () => {
     if (selectedOption !== null) {
@@ -29,14 +53,40 @@ export default function RiskAssessmentPage() {
       const updatedAnswers = [...answers.filter((a) => a.questionId !== currentQuestion.id), newAnswer];
       setAnswers(updatedAnswers);
 
+      // if last question, calculate score and navigate to results
       if (isLastQuestion) {
-        // Survey complete - calculate total points
-        const totalPoints = updatedAnswers.reduce((sum, answer) => sum + answer.points, 0);
-        router.push(`/risk-assessment/results?score=${totalPoints}`);
-      } else {
-        setCurrentQuestionIndex(currentQuestionIndex + 1);
-        // Load previous answer if going forward and coming back
-        const nextQuestion = riskAssessmentQuestions[currentQuestionIndex + 1];
+        let numPointsQuestionsAnswered = 0;
+        let totalPoints = 0;
+
+        // calculate total points and number of questions answered with points
+        for (const answer of updatedAnswers) {
+          if (answer.points !== undefined) {
+            numPointsQuestionsAnswered += 1;
+            totalPoints += answer.points;
+          }
+        }
+
+        // calculate final score and push to results page
+        const score = Number((totalPoints / numPointsQuestionsAnswered).toFixed(2)); // round to 2 decimals
+        router.push(`/risk-assessment/results?score=${score}`);
+        return;
+      }
+
+      // Move to next question
+      const nextIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIndex);
+
+      // Recalculate visible questions based on updated answers
+      const nextVisibleQuestions = riskAssessmentQuestions.filter((question) => {
+        if (!question.showIf) return true;
+        const dependentAnswer = updatedAnswers.find((a) => a.questionId === question.showIf!.questionId);
+        if (!dependentAnswer) return false;
+        return question.showIf.answer.includes(dependentAnswer.answer);
+      });
+
+      // Load previous answer for next question if it exists
+      if (nextVisibleQuestions[nextIndex]) {
+        const nextQuestion = nextVisibleQuestions[nextIndex];
         const previousAnswer = updatedAnswers.find((a) => a.questionId === nextQuestion.id);
         if (previousAnswer) {
           const optionIndex = nextQuestion.options.findIndex((opt) => opt.text === previousAnswer.answer);
@@ -44,14 +94,18 @@ export default function RiskAssessmentPage() {
         } else {
           setSelectedOption(null);
         }
+      } else {
+        setSelectedOption(null);
       }
     }
   };
 
+  // navigate to previous question
   const handlePrevious = () => {
     if (!isFirstQuestion) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-      const previousQuestion = riskAssessmentQuestions[currentQuestionIndex - 1];
+      const prevIndex = currentQuestionIndex - 1;
+      setCurrentQuestionIndex(prevIndex);
+      const previousQuestion = visibleQuestions[prevIndex];
       const previousAnswer = answers.find((a) => a.questionId === previousQuestion.id);
       if (previousAnswer) {
         const optionIndex = previousQuestion.options.findIndex((opt) => opt.text === previousAnswer.answer);
@@ -62,6 +116,7 @@ export default function RiskAssessmentPage() {
     }
   };
 
+  // cancel and return to home
   const handleCancel = () => {
     router.push("/");
   };
@@ -128,17 +183,6 @@ export default function RiskAssessmentPage() {
             <Button onClick={handleNext} disabled={selectedOption === null}>
               {isLastQuestion ? "Complete" : "Next"}
             </Button>
-          </div>
-
-          <div className="pt-4">
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-primary h-2 rounded-full transition-all duration-300"
-                style={{
-                  width: `${((currentQuestionIndex + 1) / riskAssessmentQuestions.length) * 100}%`,
-                }}
-              />
-            </div>
           </div>
         </CardContent>
       </Card>
