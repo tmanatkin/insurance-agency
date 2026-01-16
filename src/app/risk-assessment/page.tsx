@@ -12,6 +12,7 @@ export default function RiskAssessmentPage() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Filter questions based on showIf conditions
   const visibleQuestions = useMemo(() => {
@@ -41,7 +42,7 @@ export default function RiskAssessmentPage() {
   const isFirstQuestion = currentQuestionIndex === 0;
   const isLastQuestion = visibleQuestions.length > 1 && currentQuestionIndex === visibleQuestions.length - 1;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (selectedOption !== null) {
       const selectedOptionData = currentQuestion.options[selectedOption];
       const newAnswer: Answer = {
@@ -53,7 +54,7 @@ export default function RiskAssessmentPage() {
       const updatedAnswers = [...answers.filter((a) => a.questionId !== currentQuestion.id), newAnswer];
       setAnswers(updatedAnswers);
 
-      // if last question, calculate score and navigate to results
+      // if last question, calculate score and send to API for analysis
       if (isLastQuestion) {
         let numPointsQuestionsAnswered = 0;
         let totalPoints = 0;
@@ -66,9 +67,40 @@ export default function RiskAssessmentPage() {
           }
         }
 
-        // calculate final score and push to results page
+        // calculate final score
         const score = Number((totalPoints / numPointsQuestionsAnswered).toFixed(2)); // round to 2 decimals
-        router.push(`/risk-assessment/results?score=${score}`);
+
+        // send answers and score to API for LLM analysis
+        setIsLoading(true);
+
+        let params = new URLSearchParams();
+
+        try {
+          const response = await fetch("/api/analyze-risk", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ score, answers: updatedAnswers }),
+          });
+
+          if (!response.ok) throw new Error("Failed to analyze risk");
+
+          const data = await response.json();
+
+          // Pass analysis result via URL search params
+          params = new URLSearchParams({
+            score: data.score.toString(),
+            insight: data.insight,
+          });
+        } catch (error) {
+          console.error("Error:", error);
+          // Fallback: still show results with just the score
+          params = new URLSearchParams({
+            score: score.toString(),
+          });
+        } finally {
+          setIsLoading(false);
+        }
+        router.push(`/risk-assessment/results?${params.toString()}`);
         return;
       }
 
@@ -175,13 +207,13 @@ export default function RiskAssessmentPage() {
           <div className="flex justify-between pt-4">
             <div>
               {!isFirstQuestion && (
-                <Button onClick={handlePrevious} variant="outline">
+                <Button onClick={handlePrevious} variant="outline" disabled={isLoading}>
                   Previous
                 </Button>
               )}
             </div>
-            <Button onClick={handleNext} disabled={selectedOption === null}>
-              {isLastQuestion ? "Complete" : "Next"}
+            <Button onClick={handleNext} disabled={selectedOption === null || isLoading}>
+              {isLastQuestion ? (isLoading ? "Analyzing..." : "Complete") : "Next"}
             </Button>
           </div>
         </CardContent>
