@@ -3,10 +3,10 @@ import { Answer } from "@/types/RiskAssessment";
 
 export async function POST(request: Request) {
   try {
-    const { answers, score } = await request.json();
+    const { answers, riskCategory } = await request.json();
 
     // Validate input
-    if (!answers || typeof score !== "number") {
+    if (!answers || typeof riskCategory !== "string") {
       return Response.json({ error: "Invalid input" }, { status: 400 });
     }
 
@@ -18,13 +18,13 @@ export async function POST(request: Request) {
     // Create prompt for LLM
     const prompt = `You are an insurance advisor analyzing a customer's risk profile based on their insurance assessment responses.
 
-Risk Score: ${score} (scale 0-3, where 0 is lowest risk and 3 is highest risk)
+Risk Category: ${riskCategory}
 
 Customer's Responses:
 ${formattedAnswers}
 
 Based on this assessment, provide:
-1. A brief explanation of their risk score
+1. A brief explanation of their risk category
 2. 2-3 specific, actionable recommendations to improve their insurance profile or reduce risk
 3. Suggested insurance coverage priorities
 
@@ -37,7 +37,7 @@ Keep the response concise, professional, and customer-friendly. Format as clear 
     });
 
     return Response.json({
-      score,
+      category: riskCategory,
       insight: result.text,
     });
   } catch (error) {

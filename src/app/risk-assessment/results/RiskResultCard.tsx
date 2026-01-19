@@ -9,11 +9,10 @@ export default function RiskResultCard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const insight = searchParams.get("insight");
-  const rawScore = searchParams.get("score");
-  const score = rawScore && /^[0-3](\.\d+)?$/.test(rawScore) ? Number(rawScore) : NaN;
+  const category = searchParams.get("category");
 
-  // if score parameter is not a float from 0-3, show error page
-  if (isNaN(score) || insight === null) {
+  // if category parameter is missing, show error page
+  if (category === null) {
     return (
       <Card className="w-full max-w-2xl">
         <CardHeader>
@@ -21,7 +20,7 @@ export default function RiskResultCard() {
           <CardDescription>Invalid assessment results</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <p className="text-red-600">Assessment score or insight not found. Please complete the assessment.</p>
+          <p className="text-red-600">Assessment category not found. Please complete the assessment.</p>
           <div className="flex gap-2 pt-4">
             <Button onClick={() => router.push("/risk-assessment")} className="flex-1">
               Start Assessment
@@ -32,28 +31,31 @@ export default function RiskResultCard() {
     );
   }
 
-  // get risk info based on final score
+  // get risk info based on category
   const riskInfo =
-    score > 2
+    category === "High Risk"
       ? {
-          level: "High Risk",
           color: "text-red-600",
           bgColor: "bg-red-50",
           borderColor: "border-red-200",
         }
-      : score > 1
+      : category === "Medium Risk"
         ? {
-            level: "Medium Risk",
             color: "text-yellow-600",
             bgColor: "bg-yellow-50",
             borderColor: "border-yellow-200",
           }
-        : {
-            level: "Low Risk",
-            color: "text-green-600",
-            bgColor: "bg-green-50",
-            borderColor: "border-green-200",
-          };
+        : category === "Low Risk"
+          ? {
+              color: "text-green-600",
+              bgColor: "bg-green-50",
+              borderColor: "border-green-200",
+            }
+          : {
+              color: "text-gray-600",
+              bgColor: "bg-gray-50",
+              borderColor: "border-gray-200",
+            };
 
   return (
     <Card className="w-full max-w-2xl">
@@ -63,11 +65,11 @@ export default function RiskResultCard() {
       </CardHeader>
       <CardContent className="space-y-6">
         <div className={`p-6 rounded-lg border-2 ${riskInfo.bgColor} ${riskInfo.borderColor}`}>
-          <h2 className={`text-3xl font-bold ${riskInfo.color}`}>{riskInfo.level}</h2>
+          <h2 className={`text-3xl font-bold ${riskInfo.color}`}>{category}</h2>
         </div>
 
         <div className="bg-gray-50 p-6 rounded-lg prose">
-          <ReactMarkdown>{insight}</ReactMarkdown>
+          {insight !== null ? <ReactMarkdown>{insight}</ReactMarkdown> : <p>Risk assessment insight unavailable.</p>}
         </div>
 
         <div className="flex gap-2 pt-4">
