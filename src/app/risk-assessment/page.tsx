@@ -68,9 +68,12 @@ export default function RiskAssessmentPage() {
         }
 
         // calculate final score
-        const score = Number((totalPoints / numPointsQuestionsAnswered).toFixed(2)); // round to 2 decimals
+        const score = totalPoints / numPointsQuestionsAnswered;
 
-        // send answers and score to API for LLM analysis
+        // determine risk category based on score
+        const riskCategory = score > 2 ? "High Risk" : score > 1 ? "Medium Risk" : "Low Risk";
+
+        // send answers and category to API for LLM analysis
         setIsLoading(true);
 
         let params = new URLSearchParams();
@@ -79,7 +82,7 @@ export default function RiskAssessmentPage() {
           const response = await fetch("/api/analyze-risk", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ score, answers: updatedAnswers }),
+            body: JSON.stringify({ riskCategory, answers: updatedAnswers }),
           });
 
           if (!response.ok) throw new Error("Failed to analyze risk");
@@ -88,14 +91,14 @@ export default function RiskAssessmentPage() {
 
           // Pass analysis result via URL search params
           params = new URLSearchParams({
-            score: data.score.toString(),
+            category: data.category,
             insight: data.insight,
           });
         } catch (error) {
           console.error("Error:", error);
-          // Fallback: still show results with just the score
+          // Fallback: still show results with just the category
           params = new URLSearchParams({
-            score: score.toString(),
+            category: riskCategory,
           });
         } finally {
           setIsLoading(false);
