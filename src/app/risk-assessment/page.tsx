@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { riskAssessmentQuestions } from "@/app/risk-assessment/riskAssessmentQuestions";
 import { Answer, Question } from "@/types/RiskAssessment";
+import { LoaderCircle } from "lucide-react";
 
 export default function RiskAssessmentPage() {
   const router = useRouter();
@@ -75,35 +76,19 @@ export default function RiskAssessmentPage() {
 
         // send answers and category to API for LLM analysis
         setIsLoading(true);
-
-        let params = new URLSearchParams();
-
         try {
           const response = await fetch("/api/analyze-risk", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ riskCategory, answers: updatedAnswers }),
           });
-
           if (!response.ok) throw new Error("Failed to analyze risk");
 
-          const data = await response.json();
-
-          // Pass analysis result via URL search params
-          params = new URLSearchParams({
-            category: data.category,
-            insight: data.insight,
-          });
+          router.push("/risk-assessment/results");
         } catch (error) {
-          console.error("Error:", error);
-          // Fallback: still show results with just the category
-          params = new URLSearchParams({
-            category: riskCategory,
-          });
-        } finally {
+          console.error("Error analyzing risk:", error);
           setIsLoading(false);
         }
-        router.push(`/risk-assessment/results?${params.toString()}`);
         return;
       }
 
@@ -158,69 +143,78 @@ export default function RiskAssessmentPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-2xl relative">
-        <button
-          onClick={handleCancel}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-          aria-label="Close"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+      {isLoading ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center p-12 space-y-4">
+            <LoaderCircle className="h-10 w-10 animate-spin" />
+            <p className="text-lg font-medium">Analyzing assessment...</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="w-full max-w-2xl relative">
+          <button
+            onClick={handleCancel}
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label="Close"
           >
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
-        <CardHeader>
-          <CardTitle>Risk Assessment</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">{currentQuestion.question}</h3>
-            <div className="space-y-2 min-h-[256px]">
-              {currentQuestion.options.map((option, index) => (
-                <label
-                  key={index}
-                  className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer transition-colors ${
-                    selectedOption === index ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="answer"
-                    value={index}
-                    checked={selectedOption === index}
-                    onChange={() => setSelectedOption(index)}
-                    className="h-4 w-4"
-                  />
-                  <span>{option.text}</span>
-                </label>
-              ))}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+          <CardHeader>
+            <CardTitle>Risk Assessment</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">{currentQuestion.question}</h3>
+              <div className="space-y-2 min-h-[256px]">
+                {currentQuestion.options.map((option, index) => (
+                  <label
+                    key={index}
+                    className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer transition-colors ${
+                      selectedOption === index ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="answer"
+                      value={index}
+                      checked={selectedOption === index}
+                      onChange={() => setSelectedOption(index)}
+                      className="h-4 w-4"
+                    />
+                    <span>{option.text}</span>
+                  </label>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className="flex justify-between pt-4">
-            <div>
-              {!isFirstQuestion && (
-                <Button onClick={handlePrevious} variant="outline" disabled={isLoading}>
-                  Previous
-                </Button>
-              )}
+            <div className="flex justify-between pt-4">
+              <div>
+                {!isFirstQuestion && (
+                  <Button onClick={handlePrevious} variant="outline" disabled={isLoading}>
+                    Previous
+                  </Button>
+                )}
+              </div>
+              <Button onClick={handleNext} disabled={selectedOption === null || isLoading}>
+                {isLastQuestion ? "Complete" : "Next"}
+              </Button>
             </div>
-            <Button onClick={handleNext} disabled={selectedOption === null || isLoading}>
-              {isLastQuestion ? (isLoading ? "Analyzing..." : "Complete") : "Next"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
