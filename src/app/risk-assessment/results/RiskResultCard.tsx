@@ -15,27 +15,8 @@ type RiskResultCardProps = {
 export default function RiskResultCard({ assessment }: RiskResultCardProps) {
   const router = useRouter();
 
-  if (assessment === null) {
-    return (
-      <Card className="w-full max-w-2xl">
-        <CardHeader>
-          <CardTitle>Error</CardTitle>
-          <CardDescription>Invalid assessment results</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <p className="text-red-600">Assessment results not found. Please complete the assessment.</p>
-          <div className="flex gap-2 pt-4">
-            <Button onClick={() => router.push("/risk-assessment")} className="flex-1">
-              Start Assessment
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const category = assessment.risk_category;
-  const insight = assessment.insight;
+  const category = assessment!.risk_category;
+  const insight = assessment!.insight;
 
   // get risk info based on category
   const riskInfo =
