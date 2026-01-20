@@ -13,19 +13,9 @@ type LatestRiskAssessment = {
 export async function getLatestRiskAssessment(): Promise<{ assessment: LatestRiskAssessment | null }> {
   const supabase = await createServersideClient();
 
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError || !user) {
-    return { assessment: null };
-  }
-
   const { data: latestAssessment, error } = await supabase
     .from("risk_assessments")
     .select("id, risk_category, insight, created_at")
-    .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
