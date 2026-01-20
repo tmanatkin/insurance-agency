@@ -15,8 +15,8 @@ export default function RiskAssessmentPage() {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Filter questions based on showIf conditions
-  const visibleQuestions = useMemo(() => {
+  // Helper to calculate visible questions given a set of answers
+  const getVisibleQuestions = (answersToUse: Answer[]): Question[] => {
     const getIsVisible = (question: Question): boolean => {
       // If no showIf condition, always show
       if (!question.showIf) return true;
@@ -28,7 +28,7 @@ export default function RiskAssessmentPage() {
       if (!getIsVisible(dependentQuestion!)) return false;
 
       // Find the answer to the dependent question
-      const dependentAnswer = answers.find((a) => a.questionId === question.showIf!.questionId);
+      const dependentAnswer = answersToUse.find((a) => a.questionId === question.showIf!.questionId);
 
       // Only show if dependent question has been answered with matching value
       if (!dependentAnswer) return false;
@@ -37,7 +37,10 @@ export default function RiskAssessmentPage() {
     };
 
     return riskAssessmentQuestions.filter(getIsVisible);
-  }, [answers]);
+  };
+
+  // Filter questions based on showIf conditions
+  const visibleQuestions = useMemo(() => getVisibleQuestions(answers), [answers]);
 
   const currentQuestion = visibleQuestions[currentQuestionIndex];
   const isFirstQuestion = currentQuestionIndex === 0;
@@ -96,13 +99,8 @@ export default function RiskAssessmentPage() {
       const nextIndex = currentQuestionIndex + 1;
       setCurrentQuestionIndex(nextIndex);
 
-      // Recalculate visible questions based on updated answers
-      const nextVisibleQuestions = riskAssessmentQuestions.filter((question) => {
-        if (!question.showIf) return true;
-        const dependentAnswer = updatedAnswers.find((a) => a.questionId === question.showIf!.questionId);
-        if (!dependentAnswer) return false;
-        return question.showIf.answer.includes(dependentAnswer.answer);
-      });
+      // Calculate visible questions with updated answers
+      const nextVisibleQuestions = getVisibleQuestions(updatedAnswers);
 
       // Load previous answer for next question if it exists
       if (nextVisibleQuestions[nextIndex]) {
