@@ -1,5 +1,6 @@
 import { generateText } from "ai";
 import { Answer } from "@/types/RiskAssessment";
+import { createRiskAssessment } from "@/services/risk-assessment";
 
 export async function POST(request: Request) {
   try {
@@ -36,9 +37,16 @@ Keep the response concise, professional, and customer-friendly. Format as clear 
       temperature: 0.5,
     });
 
+    const insight = result.text;
+    const saveResult = await createRiskAssessment({ answers, riskCategory, insight });
+
+    if (saveResult.error) {
+      console.error("Failed to persist risk assessment:", saveResult.error);
+    }
+
     return Response.json({
       category: riskCategory,
-      insight: result.text,
+      insight,
     });
   } catch (error) {
     console.error("Error analyzing risk:", error);
