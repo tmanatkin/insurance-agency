@@ -1,18 +1,21 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function RiskResultCard() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const insight = searchParams.get("insight");
-  const category = searchParams.get("category");
+type RiskResultCardProps = {
+  assessment: {
+    risk_category: string;
+    insight: string | null;
+  } | null;
+};
 
-  // if category parameter is missing, show error page
-  if (category === null) {
+export default function RiskResultCard({ assessment }: RiskResultCardProps) {
+  const router = useRouter();
+
+  if (assessment === null) {
     return (
       <Card className="w-full max-w-2xl">
         <CardHeader>
@@ -20,7 +23,7 @@ export default function RiskResultCard() {
           <CardDescription>Invalid assessment results</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <p className="text-red-600">Assessment category not found. Please complete the assessment.</p>
+          <p className="text-red-600">Assessment results not found. Please complete the assessment.</p>
           <div className="flex gap-2 pt-4">
             <Button onClick={() => router.push("/risk-assessment")} className="flex-1">
               Start Assessment
@@ -30,6 +33,9 @@ export default function RiskResultCard() {
       </Card>
     );
   }
+
+  const category = assessment.risk_category;
+  const insight = assessment.insight;
 
   // get risk info based on category
   const riskInfo =
