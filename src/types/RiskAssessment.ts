@@ -13,6 +13,7 @@ export interface Question {
 
 export interface Answer {
   questionId: string;
+  question: string;
   answer: string;
   points?: number;
 }

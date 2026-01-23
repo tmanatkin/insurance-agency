@@ -51,6 +51,7 @@ export default function RiskAssessmentPage() {
       const selectedOptionData = currentQuestion.options[selectedOption];
       const newAnswer: Answer = {
         questionId: currentQuestion.id,
+        question: currentQuestion.question,
         answer: selectedOptionData.text,
         points: selectedOptionData.points,
       };
