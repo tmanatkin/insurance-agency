@@ -9,8 +9,8 @@ const openSans = Open_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Insurance Agency",
-  description: "description",
+  title: "Insurance Risk Assessment",
+  description: "Home and auto insurance risk assessment with AI-generated recommendations.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
